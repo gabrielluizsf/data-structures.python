@@ -1,10 +1,5 @@
 import sqlite3
 
- # Conexão com o banco de dados
-conn = sqlite3.connect("db/rexon_metals.sqlite")
- # Cursor para realizar as operações no banco
-cursor = conn.cursor()
-
 class Customers():    
     def allCustomers():
         # Seleciona todos os registros da tabela CUSTOMER
@@ -41,3 +36,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+# Conexão com o banco de dados
+conn = sqlite3.connect("db/rexon_metals.sqlite")
+# Cursor para realizar as operações no banco
+cursor = conn.cursor()
+        
