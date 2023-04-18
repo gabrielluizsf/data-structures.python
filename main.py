@@ -35,9 +35,9 @@ def main():
         print("ERROR INVALID COMMAND")
 
 if __name__ == '__main__':
+    # Conexão com o banco de dados
+    conn = sqlite3.connect("db/rexon_metals.sqlite")
+    # Cursor para realizar as operações no banco
+    cursor = conn.cursor()
     main()
-# Conexão com o banco de dados
-conn = sqlite3.connect("db/rexon_metals.sqlite")
-# Cursor para realizar as operações no banco
-cursor = conn.cursor()
         
