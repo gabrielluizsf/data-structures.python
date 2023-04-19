@@ -52,7 +52,51 @@ class Customers():
         # Fecha a conexão com o banco de dados
         conn.close()
 
-def main():
+
+    # Função para adicionar um customer na fila para atualizar as informações
+    def update_customer_to_queue(name, email):
+        # Insere o novo customer na fila
+        update_customer_queue.put((name, email))
+
+    # Função para atualizar dados em uma tabela
+    def update(id):
+        while not update_customer_queue.empty():
+            # Remove o próximo customer da fila
+            name, email = update_customer_queue.get()
+            # Monta a query de update
+            sql = "UPDATE CUSTOMER SET NAME = ?, EMAIL = ? WHERE CUSTOMER_ID = ?"
+            # Executa a query
+            cursor.execute(sql, (name,email,id))
+            # Salva as mudanças
+            conn.commit()
+
+            print(name," atualizado com sucesso")
+
+        # Fecha a conexão
+        conn.close()
+
+        # Função para adicionar um novo customer à fila para ser deletado
+    def delete_customer_to_delete_queue(id):
+        # Insere o novo customer na fila
+        delete_customer_queue.put((id))
+
+    def delete():
+        while not delete_customer_queue.empty():
+            # Remove o próximo customer da fila
+            customer_id = delete_customer_queue.get()
+            
+            # Exclui o cliente com base no customer_id
+            cursor.execute("DELETE FROM CUSTOMER WHERE CUSTOMER_ID  =  ?", (customer_id,))
+
+            # Confirma as alterações no banco de dados
+            conn.commit()
+
+            print("Contato deletado com sucesso")
+          
+        # Fecha a conexão com o banco de dados
+        conn.close()
+
+def cli():
     Customers.createTable()
     user_input = input("Digite um comando: ")
 
@@ -61,20 +105,48 @@ def main():
         
     elif user_input == 'new customers':
         while True:
-            name = input("Digite o nome do customer: ")
-            email = input("Digite o email do customer: ")
+            name = input("Digite o nome do contato: ")
+            email = input("Digite o email do contato: ")
+            
             Customers.add_customer_to_queue(name,email)
-            if customer_queue.qsize() >= 3:
+            
+            if  customer_queue.qsize()  >=  10:
                 Customers.process_next_customer()
                 break
+            
+
+    elif user_input ==  "update customers":
+        while True:
+            id  =  input("Digite o id do contato: ")
+            name = input("Digite o novo nome do contato: ")
+            email = input("Digite o novo email do contato: ")
+            
+            Customers.update_customer_to_queue(name,email)
+
+            if  update_customer_queue.qsize()  >=  1:
+                Customers.update(id)
+                break
+            
+    elif user_input ==  "delete customers":
+        while True:
+            id  =  input("Digite o id do contato: ")
+    
+            Customers.delete_customer_to_delete_queue(id)
+            
+            if  delete_customer_queue.qsize()  >=  10:
+                Customers.delete()
+                break
+    
     else:
         print("ERROR INVALID COMMAND")
     
 if __name__ == '__main__':
     # Cria uma fila para os cadastros de customers
     customer_queue = Queue()
+    update_customer_queue = Queue()
+    delete_customer_queue = Queue()
     # Conexão com o banco de dados
     conn = sqlite3.connect("db/contatos.sqlite")
     # Cursor para realizar as operações no banco
     cursor = conn.cursor()
-    main()
+    cli()
